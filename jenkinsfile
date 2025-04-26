@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        // Your DockerHub credentials and account
         DOCKERHUB_CREDENTIALS_ID = 'jagadhish3-docker'
         DOCKERHUB_USERNAME = 'jagadhish3'
         IMAGE_NAME = 'movie-recommender'
@@ -13,6 +12,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 git branch: 'main', url: "${GITHUB_REPO_URL}"
+                echo "Checked out branch: ${env.GIT_BRANCH}"
             }
         }
 
@@ -25,9 +25,6 @@ pipeline {
         }
 
         stage('Login and Push to Docker Hub') {
-            when {
-                branch 'main'
-            }
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', "${DOCKERHUB_CREDENTIALS_ID}") {
