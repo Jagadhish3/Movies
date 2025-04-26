@@ -157,7 +157,7 @@ def home():
 <body>
     <div class="container">
         <header>
-            <h1>Movie Recommendation system</h1>
+            <h1>Movie Recommendation system using CI/CD pipeline</h1>
             <p>Get recommendations based on your favorite movies</p>
         </header>
 
