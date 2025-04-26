@@ -28,7 +28,7 @@ pipeline {
             }
             steps {
                 script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'jagadhish3-docker') {
+                    docker.withRegistry('https://registry.hub.docker.com', 'jagadhish3') {
                         docker.image("movie-recommender:${env.BUILD_ID}").push()
                     }
                 }
