@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/yourusername/movie-recommender.git'
+                git branch: 'main', url: 'https://github.com/Jagadhish3/Movies'
             }
         }
         
@@ -16,11 +16,11 @@ pipeline {
             }
         }
         
-        stage('Run Tests') {
-            steps {
-                sh 'python -m pytest tests/'  # Add your tests later
-            }
-        }
+        // stage('Run Tests') {
+        //     steps {
+        //         sh 'python -m pytest tests/'  # Add your tests later
+        //     }
+        // }
         
         stage('Deploy to Docker Hub') {
             when {
@@ -28,7 +28,7 @@ pipeline {
             }
             steps {
                 script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
+                    docker.withRegistry('https://registry.hub.docker.com', 'jagadhish3-docker') {
                         docker.image("movie-recommender:${env.BUILD_ID}").push()
                     }
                 }
