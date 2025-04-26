@@ -2,34 +2,36 @@ pipeline {
     agent any
 
     environment {
+        // Your DockerHub credentials and account
         DOCKERHUB_CREDENTIALS_ID = 'jagadhish3-docker'
         DOCKERHUB_USERNAME = 'jagadhish3'
-        IMAGE_NAME = "movie-recommender"
+        IMAGE_NAME = 'movie-recommender'
+        GITHUB_REPO_URL = 'https://github.com/Jagadhish3/Movies.git'
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/Jagadhish3/Movies.git'
+                git branch: 'main', url: "${GITHUB_REPO_URL}"
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${env.BUILD_ID}")
+                    docker.build("${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest")
                 }
             }
         }
 
-        stage('Deploy to Docker Hub') {
+        stage('Login and Push to Docker Hub') {
             when {
                 branch 'main'
             }
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', "${DOCKERHUB_CREDENTIALS_ID}") {
-                        docker.image("${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${env.BUILD_ID}").push()
+                        docker.image("${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest").push()
                     }
                 }
             }
