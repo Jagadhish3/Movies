@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/yourusername/movie-recommender.git'
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build("movie-recommender:${env.BUILD_ID}")
+                }
+            }
+        }
+        
+        stage('Run Tests') {
+            steps {
+                sh 'python -m pytest tests/'  # Add your tests later
+            }
+        }
+        
+        stage('Deploy to Docker Hub') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
+                        docker.image("movie-recommender:${env.BUILD_ID}").push()
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
