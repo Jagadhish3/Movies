@@ -6,30 +6,66 @@ pipeline {
         DOCKERHUB_USERNAME = 'jagadhish3'
         IMAGE_NAME = 'movie-recommender'
         GITHUB_REPO_URL = 'https://github.com/Jagadhish3/Movies.git'
+        VERSION = "${env.BUILD_ID}"
+        // Windows-specific paths
+        DOCKER_EXE = "docker" // Assumes Docker is in PATH
+        POWERSHELL = "powershell.exe -Command"
     }
 
     stages {
+        stage('Clean Workspace') {
+            steps {
+                bat 'rd /s /q "%WORKSPACE%" || exit 0'
+            }
+        }
+
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: "${GITHUB_REPO_URL}"
-                echo "Checked out branch: ${env.GIT_BRANCH}"
+                git branch: 'main', 
+                url: "${GITHUB_REPO_URL}",
+                poll: true
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest")
+                    // Build with no cache to ensure fresh image
+                    bat "${DOCKER_EXE} build --no-cache -t ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${VERSION} ."
+                    
+                    // Tag as latest
+                    bat "${DOCKER_EXE} tag ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${VERSION} ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest"
                 }
             }
         }
 
-        stage('Login and Push to Docker Hub') {
+        stage('Push to Docker Hub') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKERHUB_CREDENTIALS_ID}") {
-                        docker.image("${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest").push()
+                    // Login and push using Jenkins credentials
+                    withCredentials([usernamePassword(
+                        credentialsId: "${DOCKERHUB_CREDENTIALS_ID}",
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )]) {
+                        bat """
+                            ${DOCKER_EXE} login -u %DOCKER_USER% -p %DOCKER_PASS%
+                            ${DOCKER_EXE} push ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${VERSION}
+                            ${DOCKER_EXE} push ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest
+                        """
                     }
+                }
+            }
+        }
+
+        stage('Deploy Locally') {
+            steps {
+                script {
+                    // Stop and remove existing container
+                    bat "${POWERSHELL} \"if (${DOCKER_EXE} ps -a --filter 'name=movie-app' -q) { ${DOCKER_EXE} stop movie-app && ${DOCKER_EXE} rm movie-app }\""
+                    
+                    // Run new container (using port 5001 to avoid conflicts)
+                    bat "${DOCKER_EXE} run -d -p 5001:5000 --name movie-app ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest"
                 }
             }
         }
@@ -37,6 +73,8 @@ pipeline {
 
     post {
         always {
+            // Clean up Docker images to save space
+            bat "${DOCKER_EXE} rmi ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${VERSION} || exit 0"
             cleanWs()
         }
     }
