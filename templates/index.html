@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommendations</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Movie Recommendation System</h1>
+            <p>Get recommendations based on your favorite movies</p>
+        </header>
+
+        <div class="search-box">
+            <input type="text" id="movie-input" placeholder="Enter a movie you like...">
+            <button id="search-btn">Search</button>
+        </div>
+
+        <div class="results" id="results">
+            <div class="no-results">
+                <p>Search for a movie to get recommendations</p>
+                <p>Try: "The Shawshank Redemption", "Inception", "The Dark Knight"</p>
+            </div>
+        </div>
+
+        <div class="popular-movies">
+            <h2>Popular Movies</h2>
+            <div class="popular-list" id="popular-movies"></div>
+        </div>
+    </div>
+
+    <script src="/static/js/script.js"></script>
+</body>
+</html>
