@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  web:
+    image: jagadhish3/movie-recommender:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+    volumes:
+      - ./:/app
+    restart: unless-stopped
+    networks:
+      - classifier-net
+
+networks:
+  classifier-net:
+    driver: bridge
